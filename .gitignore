@@ -3,3 +3,6 @@
 /robots/bin
 eclipse.bat
 .idea/
+
+#files built by IntelliJ IDEA
+/target/

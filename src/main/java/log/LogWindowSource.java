@@ -60,7 +60,7 @@ public class LogWindowSource
     {
         LogEntry entry = new LogEntry(logLevel, strMessage);
         synchronized(m_messages) {
-            if(m_messages.size() = m_iQueueLength)
+            if(m_messages.size() == m_iQueueLength)
                 m_messages.remove(0);
             m_messages.add(entry);
         }
