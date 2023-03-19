@@ -79,6 +79,7 @@ public class LogWindowSource
                 }
             }
         }
+        //TODO check NullPointerException
         for (WeakReference<LogChangeListener> listener : activeListeners)
         {
             listener.get().onLogChanged();

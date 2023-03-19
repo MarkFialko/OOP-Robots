@@ -5,8 +5,14 @@ import java.awt.BorderLayout;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
+/**
+ * Класс, представляющий собой игровое окно.
+ */
 public class GameWindow extends JInternalFrame
 {
+    /**
+     * Игровой визуализатор.
+     */
     private final GameVisualizer m_visualizer;
     public GameWindow() 
     {

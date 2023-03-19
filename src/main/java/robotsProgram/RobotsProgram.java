@@ -1,4 +1,6 @@
-package gui;
+package robotsProgram;
+
+import gui.MainApplicationFrame;
 
 import java.awt.Frame;
 

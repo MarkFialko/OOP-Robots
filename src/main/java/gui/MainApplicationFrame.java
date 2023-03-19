@@ -9,14 +9,20 @@ import javax.swing.JInternalFrame;
 
 import log.Logger;
 
-
+/**
+ * Класс, представляющий собой главное окно приложения.
+ */
 public class MainApplicationFrame extends JFrame
 {
+    /**
+     * Клиентская область фрейма, в которую вставляются дочерние компоненты.
+     */
     private final JDesktopPane desktopPane = new JDesktopPane();
-    
+
+    /**
+     * Создать окно приложения с отступом большого окна на 50 пикселей от каждого края экрана.
+     */
     public MainApplicationFrame() {
-        //Make the big window be indented 50 pixels from each edge
-        //of the screen.
         int inset = 50;        
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
@@ -24,19 +30,21 @@ public class MainApplicationFrame extends JFrame
             screenSize.height - inset*2);
 
         setContentPane(desktopPane);
-        
-        
+
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
 
-        GameWindow gameWindow = new GameWindow();
-        gameWindow.setSize(400,  400);
+        GameWindow gameWindow = createGameWindow();
         addWindow(gameWindow);
 
         setJMenuBar(new MenuBar(this));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
-    
+
+    /**
+     * Создать окно логов.
+     * @return окно с логами.
+     */
     protected LogWindow createLogWindow()
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
@@ -47,7 +55,22 @@ public class MainApplicationFrame extends JFrame
         Logger.debug("Протокол работает");
         return logWindow;
     }
-    
+
+    /**
+     * Создать игорового окна.
+     * @return окно с игрой.
+     */
+    protected GameWindow createGameWindow()
+    {
+        GameWindow gameWindow = new GameWindow();
+        gameWindow.setSize(400,  400);
+        return gameWindow;
+    }
+
+    /**
+     * Добавить окно к клиентскому фрейму и сделать окно видимым.
+     * @param frame окно, которое необходимо вставить в фрейм.
+     */
     protected void addWindow(JInternalFrame frame)
     {
         desktopPane.add(frame);
