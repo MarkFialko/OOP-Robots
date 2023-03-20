@@ -2,11 +2,7 @@ package gui;
 
 import mechanicsEntity.RobotMovement;
 
-import java.awt.Color;
-import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
@@ -66,7 +62,9 @@ public class GameVisualizer extends JPanel
 
     protected void setTargetPosition(Point p)
     {
+
         m_targetPos = new Position<>(p.x, p.y);
+        Dimension v = this.getSize();
     }
     
     protected void onRedrawEvent()
@@ -76,7 +74,7 @@ public class GameVisualizer extends JPanel
     
     protected void onModelUpdateEvent()
     {
-        m_robot.moveRobot(m_targetPos);
+        m_robot.moveRobot(m_targetPos, this.getSize().height, this.getSize().width);
     }
     
     private static int round(double value)

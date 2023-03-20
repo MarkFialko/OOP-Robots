@@ -16,6 +16,8 @@ public class RobotMovement {
      */
     private static final double maxAngularVelocity = 0.001;
 
+    private static final double duration = 10;
+
     public RobotMovement(Position<Double> position)
     {
         m_robotPos = position;
@@ -35,7 +37,7 @@ public class RobotMovement {
      * Вызывается визуализатором.
      * @param targetPos позиция цели.
      */
-    public void moveRobot(Position<Integer> targetPos)
+    public void moveRobot(Position<Integer> targetPos, int height, int width)
     {
         double distance = distance(targetPos.getX(), targetPos.getY(),
                 m_robotPos.getX(), m_robotPos.getY());
@@ -43,7 +45,6 @@ public class RobotMovement {
         {
             return;
         }
-        double velocity = maxVelocity;
         double angleToTarget = angleTo(m_robotPos.getX(), m_robotPos.getY(), targetPos.getX(), targetPos.getY());
         double angularVelocity = 0;
         if (angleToTarget > m_robotDirection)
@@ -55,16 +56,15 @@ public class RobotMovement {
             angularVelocity = -maxAngularVelocity;
         }
 
-        changePosition(velocity, angularVelocity, 10);
+        changePosition(maxVelocity, angularVelocity, height, width);
     }
 
     /**
      *
      * @param velocity скорость движения.
      * @param angularVelocity угол изменения направления вектора движения.
-     * @param duration
      */
-    private void changePosition(double velocity, double angularVelocity, double duration)
+    private void changePosition(double velocity, double angularVelocity, int height, int width)
     {
         velocity = applyLimits(velocity, 0, maxVelocity);
         angularVelocity = applyLimits(angularVelocity, -maxAngularVelocity, maxAngularVelocity);
@@ -75,6 +75,7 @@ public class RobotMovement {
         {
             newX = m_robotPos.getX()+ velocity * duration * Math.cos(m_robotDirection);
         }
+        newX = applyLimits(newX, 10, width-10);
         double newY = m_robotPos.getY() - velocity / angularVelocity *
                 (Math.cos(m_robotDirection  + angularVelocity * duration) -
                         Math.cos(m_robotDirection));
@@ -82,9 +83,9 @@ public class RobotMovement {
         {
             newY = m_robotPos.getY() + velocity * duration * Math.sin(m_robotDirection);
         }
+        newY = applyLimits(newY, 10, height-10);
         m_robotPos = new Position<>(newX, newY);
-        double newDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
-        m_robotDirection = newDirection;
+        m_robotDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
 
     }
 
