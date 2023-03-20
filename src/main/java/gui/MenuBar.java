@@ -5,15 +5,18 @@ import log.Logger;
 import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 
 
 public final class MenuBar extends JMenuBar {
 
     public final JFrame jFrame;
+
     public MenuBar(JFrame jFrame) {
         this.jFrame = jFrame;
         this.add(generateLookAndFeelMenu());
         this.add(generateTestMenu());
+        this.add(generateExitMenu());
     }
 
     private JMenu generateLookAndFeelMenu() {
@@ -43,22 +46,27 @@ public final class MenuBar extends JMenuBar {
         return testMenu;
     }
 
+    private JMenu generateExitMenu() {
+        JMenu exitMenu = new JMenu("Выйти");
+        exitMenu.setMnemonic(KeyEvent.VK_ESCAPE);
+        exitMenu.getAccessibleContext().setAccessibleDescription("Выход из приложения");
+        addMenuItem(exitMenu, "Выйти из приложения",
+                (event) -> jFrame.dispatchEvent(new WindowEvent(jFrame, WindowEvent.WINDOW_CLOSING)));
+        return exitMenu;
+    }
+
     private void addMenuItem(JMenu menu, String text, ActionListener action) {
         JMenuItem menuItem = new JMenuItem(text, KeyEvent.VK_S);
         menuItem.addActionListener(action);
         menu.add(menuItem);
     }
 
-    private void setLookAndFeel(String className)
-    {
-        try
-        {
+    private void setLookAndFeel(String className) {
+        try {
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(jFrame);
-        }
-        catch (ClassNotFoundException | InstantiationException
-               | IllegalAccessException | UnsupportedLookAndFeelException e)
-        {
+        } catch (ClassNotFoundException | InstantiationException
+                 | IllegalAccessException | UnsupportedLookAndFeelException e) {
             Logger.debug("Ошибка при загрузке `LookAndFeel`: className=" + className);
         }
     }
