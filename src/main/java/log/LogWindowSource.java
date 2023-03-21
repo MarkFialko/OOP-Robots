@@ -1,108 +1,128 @@
 package log;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-/**
- * Что починить:
- * 1. Этот класс порождает утечку ресурсов (связанные слушатели оказываются
- * удерживаемыми в памяти)
- * 2. Этот класс хранит активные сообщения лога, но в такой реализации он 
- * их лишь накапливает. Надо же, чтобы количество сообщений в логе было ограничено 
- * величиной m_iQueueLength (т.е. реально нужна очередь сообщений 
- * ограниченного размера) 
- */
-public class LogWindowSource
-{
-    private int m_iQueueLength;
+public class LogWindowSource {
+    /**
+     * Максимально число элементов в очереди активных сообщений лога.
+     */
+    private final int m_iQueueLength;
 
-    private ArrayList<LogEntry> m_messages;
-    private final ArrayList<WeakReference<LogChangeListener>> m_listeners;
-    //private final ArrayList<LogChangeListener> m_listeners;
-    //private volatile LogChangeListener[] m_activeListeners;
-    private volatile ArrayList<WeakReference<LogChangeListener>> m_activeListeners;
+    /**
+     * Потокобезопасная очередь активных сообщений лога.
+     */
+    private final BlockingQueue<LogEntry> m_messages;
 
-    public LogWindowSource(int iQueueLength)
-    {
+    /**
+     * Список всех подписчиков.
+     */
+    private final ConcurrentLinkedQueue<WeakReference<LogChangeListener>> m_listeners;
+
+    /**
+     * volatile очередь всех активных подписчиков.
+     */
+    private volatile ConcurrentLinkedQueue<WeakReference<LogChangeListener>> m_activeListeners;
+
+    public LogWindowSource(int iQueueLength) {
         m_iQueueLength = iQueueLength;
-        m_messages = new ArrayList<LogEntry>(iQueueLength);
-        m_listeners = new ArrayList<WeakReference<LogChangeListener>>();
-        //m_listeners = new ArrayList<LogChangeListener>();
+        m_messages = new LinkedBlockingQueue<>(iQueueLength);
+        m_listeners = new ConcurrentLinkedQueue<>();
+        m_activeListeners = null;
     }
 
-    public void registerListener(LogChangeListener listener)
-    {
+    /**
+     * Зарегистрировать нового подписчика на событие изменения состояния логов.
+     *
+     * @param listener подписчик.
+     */
+    public void registerListener(LogChangeListener listener) {
+        WeakReference<LogChangeListener> weakListener = new WeakReference<>(listener);
+        m_listeners.add(weakListener);
+        m_activeListeners = null;
+    }
 
-        synchronized(m_listeners)
-        {
-            WeakReference<LogChangeListener> weakListener = new WeakReference(listener);
-            m_listeners.add(weakListener);
-            //m_listeners.add(listener);
-            m_activeListeners = null;
-        }
+    /**
+     * Отменить регистрацию подписчика на собятие изменения состояния логов.
+     *
+     * @param listener подписчик.
+     */
+    public void unregisterListener(LogChangeListener listener) {
+        //TODO работает ли?
+        WeakReference<LogChangeListener> weakListener = new WeakReference<>(listener);
+        m_listeners.remove(weakListener);
+        m_activeListeners = null;
     }
-    
-    public void unregisterListener(LogChangeListener listener)
-    {
-        synchronized(m_listeners)
-        {
-            WeakReference<LogChangeListener> weakListener = new WeakReference(listener);
-            m_listeners.remove(weakListener);
-            //m_listeners.remove(listener);
-            m_activeListeners = null;
-        }
-    }
-    
-    public void append(LogLevel logLevel, String strMessage)
-    {
-        LogEntry entry = new LogEntry(logLevel, strMessage);
-        synchronized(m_messages) {
-            if(m_messages.size() == m_iQueueLength)
-                m_messages.remove(0);
-            m_messages.add(entry);
-        }
 
-        //LogChangeListener[] activeListeners = m_activeListeners;
-        ArrayList<WeakReference<LogChangeListener>> activeListeners = m_activeListeners;
-        if (activeListeners == null)
-        {
-            synchronized (m_listeners)
-            {
-                if (m_activeListeners == null)
-                {
-                    //activeListeners = m_listeners.toArray(new LogChangeListener [0]);
-                    activeListeners = m_listeners;
-                    m_activeListeners =  activeListeners;
-                }
-            }
+    /**
+     * Добавить лог.
+     *
+     * @param logLevel   уровень логирования.
+     * @param strMessage сообщение лога.
+     */
+    public void append(LogLevel logLevel, String strMessage) {
+        LogEntry newEntry = new LogEntry(logLevel, strMessage);
+        if (m_messages.size() == m_iQueueLength)
+            m_messages.poll(); //returns head of queue or null, without blocking
+        m_messages.add(newEntry);
+
+        //TODO activeListeners ???
+        ConcurrentLinkedQueue<WeakReference<LogChangeListener>> activeListeners = m_activeListeners;
+        if (activeListeners == null) {
+            activeListeners = m_listeners;
+            m_activeListeners = activeListeners;
         }
-        //TODO check NullPointerException
-        for (WeakReference<LogChangeListener> listener : activeListeners)
-        {
-            listener.get().onLogChanged();
+        notifyAllAboutLogChanges(activeListeners);
+    }
+
+    /**
+     * Уведомить всех подписчиков {@code listeners} об изменении логов.
+     *
+     * @param listeners подписчики.
+     */
+    public void notifyAllAboutLogChanges(ConcurrentLinkedQueue<WeakReference<LogChangeListener>> listeners) {
+        assert listeners != null;
+        for (WeakReference<LogChangeListener> listenerRef : listeners) {
+            LogChangeListener listener = listenerRef.get();
+            if (listener != null)
+                listener.onLogChanged();
         }
     }
-    
-    public int size()
-    {
+
+    /**
+     * Возвращает размер списка логов.
+     *
+     * @return размер списка.
+     */
+    public int size() {
         return m_messages.size();
     }
 
-    public Iterable<LogEntry> range(int startFrom, int count)
-    {
-        if (startFrom < 0 || startFrom >= m_messages.size())
-        {
+    /**
+     * Получить итератор на {@code count} записей логов начиная с {@code startFrom} записи.
+     *
+     * @param startFrom первая запись
+     * @param count     количество записей
+     * @return итератор
+     */
+    public Iterable<LogEntry> range(int startFrom, int count) {
+        if (startFrom < 0 || startFrom >= m_messages.size()) {
             return Collections.emptyList();
         }
         int indexTo = Math.min(startFrom + count, m_messages.size());
-        return m_messages.subList(startFrom, indexTo);
+        return Arrays.asList(Arrays.copyOfRange(m_messages.toArray(new LogEntry[0]), startFrom, indexTo));
     }
 
-    public Iterable<LogEntry> all()
-    {
+    /**
+     * Получить итератор на все записи логов.
+     *
+     * @return итератор.
+     */
+    public Iterable<LogEntry> all() {
         return m_messages;
     }
 }
