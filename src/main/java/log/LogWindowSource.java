@@ -52,7 +52,6 @@ public class LogWindowSource {
      * @param listener подписчик.
      */
     public void unregisterListener(LogChangeListener listener) {
-        //TODO работает ли?
         WeakReference<LogChangeListener> weakListener = new WeakReference<>(listener);
         m_listeners.remove(weakListener);
         m_activeListeners = null;
@@ -66,11 +65,11 @@ public class LogWindowSource {
      */
     public void append(LogLevel logLevel, String strMessage) {
         LogEntry newEntry = new LogEntry(logLevel, strMessage);
-        if (m_messages.size() == m_iQueueLength)
+        if(!m_messages.add(newEntry)) {
             m_messages.poll(); //returns head of queue or null, without blocking
-        m_messages.add(newEntry);
+            m_messages.add(newEntry);
+        }
 
-        //TODO activeListeners ???
         ConcurrentLinkedQueue<WeakReference<LogChangeListener>> activeListeners = m_activeListeners;
         if (activeListeners == null) {
             activeListeners = m_listeners;

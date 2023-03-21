@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
+import localization.Localization;
 import log.Logger;
 
 /**
@@ -55,7 +56,7 @@ public class MainApplicationFrame extends JFrame
         logWindow.setSize(300, 800);
         setMinimumSize(logWindow.getSize());
         logWindow.pack();
-        Logger.debug("Протокол работает");
+        Logger.debug(Localization.getString("protocolWorks"));
         return logWindow;
     }
 
