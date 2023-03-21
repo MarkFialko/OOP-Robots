@@ -20,7 +20,7 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
 
     public LogWindow(LogWindowSource logSource) 
     {
-        super(Localization.getString("WorkProtocol"), true, true, true, true);
+        super(Localization.getString("workProtocol"), true, true, true, true);
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");
