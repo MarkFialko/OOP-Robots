@@ -1,5 +1,6 @@
 package gui;
 
+import localization.Localization;
 import log.Logger;
 
 import javax.swing.*;
@@ -20,16 +21,16 @@ public final class MenuBar extends JMenuBar {
     }
 
     private JMenu generateLookAndFeelMenu() {
-        JMenu lookAndFeelMenu = new JMenu("Режим отображения");
+        JMenu lookAndFeelMenu = new JMenu(Localization.getString("lookAndFeelMenu"));
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
-                "Управление режимом отображения приложения");
+                Localization.getString("lookAndFeelMenuDescription"));
 
-        addMenuItem(lookAndFeelMenu, "Системная схема", (event) -> {
+        addMenuItem(lookAndFeelMenu, Localization.getString("systemLookAndFeel"), (event) -> {
             setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             jFrame.invalidate();
         });
-        addMenuItem(lookAndFeelMenu, "Универсальная схема", (event) -> {
+        addMenuItem(lookAndFeelMenu, Localization.getString("crossPlatformLookAndFeel"), (event) -> {
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             jFrame.invalidate();
         });
@@ -38,19 +39,21 @@ public final class MenuBar extends JMenuBar {
     }
 
     private JMenu generateTestMenu() {
-        JMenu testMenu = new JMenu("Тесты");
+        JMenu testMenu = new JMenu(Localization.getString("testMenu"));
         testMenu.setMnemonic(KeyEvent.VK_T);
-        testMenu.getAccessibleContext().setAccessibleDescription("Тестовые команды");
+        testMenu.getAccessibleContext().setAccessibleDescription(
+                Localization.getString("testMenuDescription"));
 
-        addMenuItem(testMenu, "Сообщение в лог", (event) -> Logger.debug("Новая строка"));
+        addMenuItem(testMenu, Localization.getString("testMenuItem"),
+                (event) -> Logger.debug(Localization.getString("strNewLine")));
         return testMenu;
     }
 
     private JMenu generateExitMenu() {
-        JMenu exitMenu = new JMenu("Выйти");
+        JMenu exitMenu = new JMenu(Localization.getString("exitMenu"));
         exitMenu.setMnemonic(KeyEvent.VK_ESCAPE);
-        exitMenu.getAccessibleContext().setAccessibleDescription("Выход из приложения");
-        addMenuItem(exitMenu, "Выйти из приложения",
+        exitMenu.getAccessibleContext().setAccessibleDescription(Localization.getString("exitMenuDescription"));
+        addMenuItem(exitMenu, Localization.getString("exitMenuItem"),
                 (event) -> jFrame.dispatchEvent(new WindowEvent(jFrame, WindowEvent.WINDOW_CLOSING)));
         return exitMenu;
     }
@@ -67,7 +70,7 @@ public final class MenuBar extends JMenuBar {
             SwingUtilities.updateComponentTreeUI(jFrame);
         } catch (ClassNotFoundException | InstantiationException
                  | IllegalAccessException | UnsupportedLookAndFeelException e) {
-            Logger.debug("Ошибка при загрузке `LookAndFeel`: className=" + className);
+            System.err.println("Ошибка при загрузке `LookAndFeel`: className=" + className);
         }
     }
 }

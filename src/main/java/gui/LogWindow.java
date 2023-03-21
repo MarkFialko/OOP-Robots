@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
+import localization.Localization;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
@@ -19,7 +20,7 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
 
     public LogWindow(LogWindowSource logSource) 
     {
-        super("Протокол работы", true, true, true, true);
+        super(Localization.getString("WorkProtocol"), true, true, true, true);
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");

@@ -1,6 +1,7 @@
 package robotsProgram;
 
 import gui.MainApplicationFrame;
+import localization.Localization;
 
 import java.awt.Frame;
 
