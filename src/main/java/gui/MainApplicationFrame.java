@@ -6,10 +6,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.*;
-import javax.swing.event.InternalFrameAdapter;
-import javax.swing.event.InternalFrameEvent;
 
-import localization.Localization;
+import localization.LocaleApplication;
+import localization.Names;
 import log.Logger;
 
 /**
@@ -56,7 +55,7 @@ public class MainApplicationFrame extends JFrame
         logWindow.setSize(300, 800);
         setMinimumSize(logWindow.getSize());
         logWindow.pack();
-        Logger.debug(Localization.getString("protocolWorks"));
+        Logger.debug(Names.PROTOCOL_WORKS.getTitle());
         return logWindow;
     }
 

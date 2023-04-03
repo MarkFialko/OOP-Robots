@@ -1,6 +1,7 @@
 package gui;
 
-import localization.Localization;
+import localization.LocaleApplication;
+import localization.Names;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,15 +9,15 @@ import java.awt.*;
 public class DialogBeforeClosing {
     public static int showWarningMessage(Component parentComponent) {
         String[] buttonLabels = new String[]{
-                Localization.getString("yes"),
-                Localization.getString("no")
+                Names.YES.getTitle(),
+                Names.NO.getTitle()
         };
         String defaultOption = buttonLabels[0];
         Icon icon = null;
 
         return JOptionPane.showOptionDialog(parentComponent,
-                Localization.getString("closeDialog"),
-                Localization.getString("warning"),
+                Names.CLOSE_DIALOG.getTitle(),
+                Names.WARNING.getTitle(),
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.WARNING_MESSAGE,
                 icon,
