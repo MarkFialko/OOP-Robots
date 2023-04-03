@@ -1,6 +1,6 @@
 package localization;
 
-import modules.ComparingHelpers;
+import common.ComparingHelpers;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;

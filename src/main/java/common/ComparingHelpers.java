@@ -1,4 +1,4 @@
-package modules;
+package common;
 
 final public class ComparingHelpers {
 

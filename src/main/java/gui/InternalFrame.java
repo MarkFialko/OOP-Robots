@@ -2,7 +2,7 @@ package gui;
 
 import localization.LocaleApplication;
 import localization.Names;
-import modules.ComparingHelpers;
+import common.ComparingHelpers;
 
 import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;

@@ -4,7 +4,7 @@ import localization.Locale;
 import localization.LocaleApplication;
 import localization.Names;
 import log.Logger;
-import modules.ComparingHelpers;
+import common.ComparingHelpers;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
