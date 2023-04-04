@@ -17,7 +17,7 @@ public class RobotMovement {
     /**
      * Максимальный угол изменения направления вектора движения.
      */
-    private static final double maxAngularVelocity = 0.001;
+    private static final double maxAngularVelocity = 0.005;
 
     private static final double duration = 10;
 
@@ -37,11 +37,12 @@ public class RobotMovement {
      * Вызывается визуализатором.
      *
      * @param targetPos позиция цели.
+     * @param ratioHeight отношение 1 к актуальной высоте окна
+     * @param ratioWidth отношение 1 к актуальной ширине окна
      */
-    public void moveRobot(Position<Integer> targetPos, int height, int width) {
-        double distance = distance(targetPos.getX(), targetPos.getY(),
-                m_robotPos.getX(), m_robotPos.getY());
-        if (distance < 0.5) {
+    public void moveRobot(Position<Double> targetPos, double ratioHeight, double ratioWidth) {
+        if (Math.abs(targetPos.getX() - m_robotPos.getX()) < 0.5 * ratioWidth
+                && Math.abs(targetPos.getY() - m_robotPos.getY()) < 0.5 * ratioHeight) {
             return;
         }
         double angleToTarget = angleTo(m_robotPos.getX(), m_robotPos.getY(), targetPos.getX(), targetPos.getY());
@@ -61,22 +62,18 @@ public class RobotMovement {
                 angularVelocity = -maxAngularVelocity;
         }
 
-        changePosition(maxVelocity, angularVelocity, height, width);
+        changePosition(angularVelocity, ratioHeight, ratioWidth);
     }
 
     /**
-     * @param velocity        скорость движения.
      * @param angularVelocity угол изменения направления вектора движения.
      */
-    private void changePosition(double velocity, double angularVelocity, int height, int width) {
-        velocity = applyLimits(velocity, 0, maxVelocity);
+    private void changePosition(double angularVelocity, double ratioHeight, double ratioWidth) {
         double newDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
-        double newX = m_robotPos.getX() + velocity * duration * Math.cos(newDirection);
-        if (width != 0)
-            newX = applyLimits(newX, 0, width);
-        double newY = m_robotPos.getY() + velocity * duration * Math.sin(newDirection);
-        if (height != 0)
-            newY = applyLimits(newY, 0, height);
+        double newX = m_robotPos.getX() + maxVelocity * duration * Math.cos(newDirection) * ratioWidth;
+        newX = applyLimits(newX, 0, 1);
+        double newY = m_robotPos.getY() + maxVelocity * duration * Math.sin(newDirection) * ratioHeight;
+        newY = applyLimits(newY, 0, 1);
         m_robotPos = new Position<>(newX, newY);
         m_robotDirection = newDirection;
     }

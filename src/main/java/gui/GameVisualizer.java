@@ -23,13 +23,13 @@ public class GameVisualizer extends JPanel
     /**
      * Позиция точки-цели.
      */
-    private volatile Position<Integer> m_targetPos;
+    private volatile Position<Double> m_targetPos;
 
     
     public GameVisualizer() 
     {
-        m_robot = new RobotMovement(new Position<>(100.0, 100.0));
-        m_targetPos = new Position<>(150, 100);
+        m_robot = new RobotMovement(new Position<>(0.5, 0.5));
+        m_targetPos = new Position<>(0.5, 0.5);
 
         m_timer = new Timer("events generator", true);;
         m_timer.schedule(new TimerTask()
@@ -63,7 +63,7 @@ public class GameVisualizer extends JPanel
     protected void setTargetPosition(Point p)
     {
 
-        m_targetPos = new Position<>(p.x, p.y);
+        m_targetPos = new Position<>(1.0 * p.x / getSize().width, 1.0 * p.y / getSize().height);
         Dimension v = this.getSize();
     }
     
@@ -74,7 +74,7 @@ public class GameVisualizer extends JPanel
     
     protected void onModelUpdateEvent()
     {
-        m_robot.moveRobot(m_targetPos, this.getSize().height, this.getSize().width);
+        m_robot.moveRobot(m_targetPos, 1.0 / this.getSize().height, 1.0 / this.getSize().width);
     }
     
     private static int round(double value)
@@ -88,8 +88,8 @@ public class GameVisualizer extends JPanel
         super.paint(g);
         Graphics2D g2d = (Graphics2D)g;
         Position<Double> currentRobotPos = m_robot.getPosition();
-        drawRobot(g2d, round(currentRobotPos.getX()), round(currentRobotPos.getY()), m_robot.getDirection());
-        drawTarget(g2d, m_targetPos.getX(), m_targetPos.getY());
+        drawRobot(g2d, round(currentRobotPos.getX()* getSize().width), round(currentRobotPos.getY() * getSize().height), m_robot.getDirection());
+        drawTarget(g2d, round(m_targetPos.getX() * getSize().width), round(m_targetPos.getY() * getSize().height));
     }
     
     private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
