@@ -3,18 +3,16 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.TextArea;
+import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
-import javax.swing.event.InternalFrameAdapter;
-import javax.swing.event.InternalFrameEvent;
 
-import localization.LocaleApplication;
+import common.ComparingHelpers;
 import localization.Names;
-import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
-public class LogWindow extends InternalFrame implements LogChangeListener
+public class LogWindow extends InternalFrame
 {
     private final LogWindowSource m_logSource;
     private final TextArea m_logContent;
@@ -44,8 +42,18 @@ public class LogWindow extends InternalFrame implements LogChangeListener
         m_logContent.setText(content.toString());
         m_logContent.invalidate();
     }
-    
+
     @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (ComparingHelpers.areEqual(m_logSource, evt.getSource())) {
+            if (ComparingHelpers.areEqual(LogWindowSource.PROPERTY_LOG, evt.getPropertyName())) {
+                onLogChanged();
+            }
+        } else {
+            super.propertyChange(evt);
+        }
+    }
+
     public void onLogChanged()
     {
         EventQueue.invokeLater(this::updateLogContent);

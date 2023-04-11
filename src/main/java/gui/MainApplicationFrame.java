@@ -95,6 +95,7 @@ public class MainApplicationFrame extends JFrame
         switch (answer) {
             case JOptionPane.YES_OPTION:
                 dispose();
+                System.exit(0);
                 break;
             case JOptionPane.NO_OPTION:
                 break;

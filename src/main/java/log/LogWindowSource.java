@@ -1,60 +1,41 @@
 package log;
 
-import java.lang.ref.WeakReference;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LogWindowSource {
     /**
      * Максимально число элементов в очереди активных сообщений лога.
      */
     private final int m_iQueueLength;
-
-    /**
-     * Потокобезопасная очередь активных сообщений лога.
-     */
+    public static final String PROPERTY_LOG = "LogWindowSource.m_messages";
+    private final PropertyChangeSupport m_propChangeDispatcher;
     private final BlockingQueue<LogEntry> m_messages;
-
-    /**
-     * Список всех подписчиков.
-     */
-    private final ConcurrentLinkedQueue<WeakReference<LogChangeListener>> m_listeners;
-
-    /**
-     * volatile очередь всех активных подписчиков.
-     */
-    private volatile ConcurrentLinkedQueue<WeakReference<LogChangeListener>> m_activeListeners;
+    private final ReadWriteLock lock;
 
     public LogWindowSource(int iQueueLength) {
         m_iQueueLength = iQueueLength;
         m_messages = new LinkedBlockingQueue<>(iQueueLength);
-        m_listeners = new ConcurrentLinkedQueue<>();
-        m_activeListeners = null;
+        lock = new ReentrantReadWriteLock();
+
+        m_propChangeDispatcher = new PropertyChangeSupport(this);
+
     }
 
     /**
-     * Зарегистрировать нового подписчика на событие изменения состояния логов.
+     * Зарегистрировать нового слушателя на событие изменения состояния логов.
      *
-     * @param listener подписчик.
+     * @param listener слушатель.
      */
-    public void registerListener(LogChangeListener listener) {
-        WeakReference<LogChangeListener> weakListener = new WeakReference<>(listener);
-        m_listeners.add(weakListener);
-        m_activeListeners = null;
-    }
-
-    /**
-     * Отменить регистрацию подписчика на собятие изменения состояния логов.
-     *
-     * @param listener подписчик.
-     */
-    public void unregisterListener(LogChangeListener listener) {
-        WeakReference<LogChangeListener> weakListener = new WeakReference<>(listener);
-        m_listeners.remove(weakListener);
-        m_activeListeners = null;
+    public void registerListener(PropertyChangeListener listener) {
+        m_propChangeDispatcher.addPropertyChangeListener(PROPERTY_LOG, listener);
     }
 
     /**
@@ -64,33 +45,19 @@ public class LogWindowSource {
      * @param strMessage сообщение лога.
      */
     public void append(LogLevel logLevel, String strMessage) {
-        LogEntry newEntry = new LogEntry(logLevel, strMessage);
-        if(!m_messages.add(newEntry)) {
-            m_messages.poll(); //returns head of queue or null, without blocking
-            m_messages.add(newEntry);
-        }
-
-        ConcurrentLinkedQueue<WeakReference<LogChangeListener>> activeListeners = m_activeListeners;
-        if (activeListeners == null) {
-            activeListeners = m_listeners;
-            m_activeListeners = activeListeners;
-        }
-        notifyAllAboutLogChanges(activeListeners);
-    }
-
-    /**
-     * Уведомить всех подписчиков {@code listeners} об изменении логов.
-     *
-     * @param listeners подписчики.
-     */
-    public void notifyAllAboutLogChanges(ConcurrentLinkedQueue<WeakReference<LogChangeListener>> listeners) {
-        assert listeners != null;
-        for (WeakReference<LogChangeListener> listenerRef : listeners) {
-            LogChangeListener listener = listenerRef.get();
-            if (listener != null)
-                listener.onLogChanged();
+        lock.writeLock().lock();
+        try {
+            LogEntry newEntry = new LogEntry(logLevel, strMessage);
+            LogEntry oldEntry = null;
+            while(!m_messages.offer(newEntry)) {
+                oldEntry = m_messages.poll(); //without blocking
+            }
+            m_propChangeDispatcher.firePropertyChange(PROPERTY_LOG, oldEntry, newEntry);
+        } finally {
+            lock.writeLock().unlock();
         }
     }
+
 
     /**
      * Возвращает размер списка логов.
@@ -98,7 +65,14 @@ public class LogWindowSource {
      * @return размер списка.
      */
     public int size() {
-        return m_messages.size();
+        int size;
+        lock.readLock().lock();
+        try {
+            size = m_messages.size();
+        } finally {
+            lock.readLock().unlock();
+        }
+        return size;
     }
 
     /**
@@ -109,11 +83,20 @@ public class LogWindowSource {
      * @return итератор
      */
     public Iterable<LogEntry> range(int startFrom, int count) {
-        if (startFrom < 0 || startFrom >= m_messages.size()) {
-            return Collections.emptyList();
+        lock.readLock().lock();
+        List<LogEntry> resultArray;
+        try {
+            if (startFrom < 0 || startFrom >= m_messages.size()) {
+                resultArray = Collections.emptyList();
+            } else {
+                int indexTo = Math.min(startFrom + count, size());
+                resultArray = Arrays.asList(
+                        Arrays.copyOfRange(m_messages.toArray(new LogEntry[0]), startFrom, indexTo));
+            }
+        } finally {
+            lock.readLock().unlock();
         }
-        int indexTo = Math.min(startFrom + count, m_messages.size());
-        return Arrays.asList(Arrays.copyOfRange(m_messages.toArray(new LogEntry[0]), startFrom, indexTo));
+        return resultArray;
     }
 
     /**
@@ -122,6 +105,6 @@ public class LogWindowSource {
      * @return итератор.
      */
     public Iterable<LogEntry> all() {
-        return m_messages;
+        return range(0, m_iQueueLength);
     }
 }
