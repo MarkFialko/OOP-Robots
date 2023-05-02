@@ -10,7 +10,7 @@ import javax.swing.event.InternalFrameEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-public abstract class InternalFrame extends JInternalFrame implements PropertyChangeListener {
+public abstract class InternalFrame extends JInternalFrame implements PropertyChangeListener, ClosableComponent {
     protected final static LocaleApplication st_locale = LocaleApplication.getInstance();
     private final Names m_title;
 
@@ -30,24 +30,14 @@ public abstract class InternalFrame extends JInternalFrame implements PropertyCh
     }
 
     private void addClosingConfirmation() {
-        JInternalFrame internalFrame = this;
+        ClosableComponent closable = this;
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addInternalFrameListener(new InternalFrameAdapter() {
             @Override
             public void internalFrameClosing(InternalFrameEvent e) {
-                handleClosing(DialogBeforeClosing.showWarningMessage(internalFrame));
+                ClosingDialog.confirm(closable);
             }
         });
-    }
-
-    protected void handleClosing(int answer) {
-        switch (answer) {
-            case JOptionPane.YES_OPTION:
-                dispose();
-                break;
-            case JOptionPane.NO_OPTION:
-                break;
-        }
     }
 
     @Override
@@ -57,6 +47,11 @@ public abstract class InternalFrame extends JInternalFrame implements PropertyCh
                 onChangeLocale();
             }
         }
+    }
+
+    @Override
+    public void onClose() {
+        dispose();
     }
 
     protected void onChangeLocale() {

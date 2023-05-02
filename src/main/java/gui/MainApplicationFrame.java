@@ -7,14 +7,13 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.*;
 
-import localization.LocaleApplication;
 import localization.Names;
 import log.Logger;
 
 /**
  * Класс, представляющий собой главное окно приложения.
  */
-public class MainApplicationFrame extends JFrame
+public class MainApplicationFrame extends JFrame implements ClosableComponent
 {
     /**
      * Клиентская область фрейма, в которую вставляются дочерние компоненты.
@@ -81,24 +80,19 @@ public class MainApplicationFrame extends JFrame
     }
 
     private void addClosingConfirmation() {
+        ClosableComponent closable = this;
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                handleClosing();
+                ClosingDialog.confirm(closable);
             }
         });
     }
 
-    private void handleClosing() {
-        int answer = DialogBeforeClosing.showWarningMessage(this);
-        switch (answer) {
-            case JOptionPane.YES_OPTION:
-                dispose();
-                System.exit(0);
-                break;
-            case JOptionPane.NO_OPTION:
-                break;
-        }
+    @Override
+    public void onClose() {
+        dispose();
+        System.exit(0);
     }
 }
