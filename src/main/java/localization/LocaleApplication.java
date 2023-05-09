@@ -44,6 +44,10 @@ public class LocaleApplication {
         }
     }
 
+    public Locale getCurrentLocale() {
+        return m_locale;
+    }
+
     public void addLocaleChangeListener(PropertyChangeListener listener)
     {
         m_propChangeDispatcher.addPropertyChangeListener(PROPERTY_LOCALE, listener);

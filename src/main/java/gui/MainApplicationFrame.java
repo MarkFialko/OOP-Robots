@@ -13,7 +13,7 @@ import log.Logger;
 /**
  * Класс, представляющий собой главное окно приложения.
  */
-public class MainApplicationFrame extends JFrame implements ClosableComponent
+public class MainApplicationFrame extends JFrame
 {
     /**
      * Клиентская область фрейма, в которую вставляются дочерние компоненты.
@@ -32,6 +32,15 @@ public class MainApplicationFrame extends JFrame implements ClosableComponent
 
         setContentPane(desktopPane);
 
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new Adapter(){
+            @Override
+            public void windowClosed(WindowEvent e)
+            {
+                System.exit(0);
+            }
+        });
+
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
 
@@ -39,8 +48,6 @@ public class MainApplicationFrame extends JFrame implements ClosableComponent
         addWindow(gameWindow);
 
         setJMenuBar(new MenuBar(this));
-
-        addClosingConfirmation();
     }
 
     /**
@@ -77,22 +84,5 @@ public class MainApplicationFrame extends JFrame implements ClosableComponent
     {
         desktopPane.add(frame);
         frame.setVisible(true);
-    }
-
-    private void addClosingConfirmation() {
-        ClosableComponent closable = this;
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                ClosingDialog.confirm(closable);
-            }
-        });
-    }
-
-    @Override
-    public void onClose() {
-        dispose();
-        System.exit(0);
     }
 }
