@@ -1,5 +1,6 @@
 package gui;
 
+import common.StateFilePath;
 import localization.LocaleApplication;
 import localization.Names;
 import common.ComparingHelpers;
@@ -15,6 +16,7 @@ public abstract class InternalFrame extends JInternalFrame implements PropertyCh
     private final Names m_title;
 
     protected InternalFrame(Names title,
+                            StateFilePath statePath,
                             boolean resizable,
                             boolean closable,
                             boolean maximizable,
@@ -24,9 +26,10 @@ public abstract class InternalFrame extends JInternalFrame implements PropertyCh
         InternalFrameAdapter a;
         m_title = title;
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addInternalFrameListener(new Adapter() {
+        addInternalFrameListener(new Adapter(statePath) {
             @Override
             public void internalFrameClosed(InternalFrameEvent e) {
+                super.internalFrameClosed(e);
                 closed();
             }
         });
@@ -42,7 +45,6 @@ public abstract class InternalFrame extends JInternalFrame implements PropertyCh
     }
 
     protected void closed() {
-        System.out.println("closed");
 
     }
 

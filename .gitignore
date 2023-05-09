@@ -3,6 +3,7 @@
 /robots/bin
 eclipse.bat
 .idea/
+/src/main/resources/states
 
 #files built by IntelliJ IDEA
 /target/

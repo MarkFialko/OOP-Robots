@@ -19,6 +19,7 @@ public enum Names {
     NO("no"),
     CLOSE_DIALOG("closeDialog"),
     WARNING("warning"),
+    STATE_DIALOG("stateDialog"),
     LANGUAGE_MENU("languageMenu"),
     RU_MENU_ITEM("ruMenuItem"),
     EN_MENU_ITEM("enMenuItem");

@@ -2,11 +2,11 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.*;
 
+import common.StateFilePath;
 import localization.Names;
 import log.Logger;
 
@@ -33,10 +33,14 @@ public class MainApplicationFrame extends JFrame
         setContentPane(desktopPane);
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new Adapter(){
+        addWindowListener(new Adapter(StateFilePath.MAIN_WINDOW){
             @Override
             public void windowClosed(WindowEvent e)
             {
+                super.windowClosed(e);
+                for(var internalFrame : desktopPane.getAllFrames()) {
+                    internalFrame.dispose();
+                }
                 System.exit(0);
             }
         });
