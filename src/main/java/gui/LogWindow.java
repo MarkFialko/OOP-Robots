@@ -8,7 +8,7 @@ import java.beans.PropertyChangeEvent;
 import javax.swing.*;
 
 import common.ComparingHelpers;
-import common.StateFilePath;
+import statesLoader.StateFilePath;
 import localization.Names;
 import log.LogEntry;
 import log.LogWindowSource;
@@ -20,7 +20,7 @@ public class LogWindow extends InternalFrame
 
     public LogWindow(LogWindowSource logSource) 
     {
-        super(Names.WORK_PROTOCOL, StateFilePath.LOG_FRAME, true, true, true, true);
+        super(Names.WORK_PROTOCOL, true, true, true, true);
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");
@@ -58,5 +58,10 @@ public class LogWindow extends InternalFrame
     public void onLogChanged()
     {
         EventQueue.invokeLater(this::updateLogContent);
+    }
+
+    @Override
+    public StateFilePath getPath() {
+        return StateFilePath.LOG_FRAME;
     }
 }

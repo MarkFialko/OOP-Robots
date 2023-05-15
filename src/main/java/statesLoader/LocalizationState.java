@@ -1,11 +1,11 @@
-package common;
+package statesLoader;
 
 import localization.Locale;
 import localization.LocaleApplication;
 
 import java.io.Serializable;
 
-public class LocalizationState implements Serializable {
+public class LocalizationState implements State {
 
     private Locale m_locale;
 
@@ -15,8 +15,8 @@ public class LocalizationState implements Serializable {
         m_locale = localeApp.getCurrentLocale();
     }
 
-    public void applyState() {
-        LocaleApplication.getInstance().setLocale(m_locale);
+    public void applyState(LocaleApplication localeApp) {
+        localeApp.setLocale(m_locale);
     }
 
 }

@@ -6,14 +6,15 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.*;
 
-import common.StateFilePath;
+import localization.LocaleApplication;
+import statesLoader.*;
 import localization.Names;
 import log.Logger;
 
 /**
  * Класс, представляющий собой главное окно приложения.
  */
-public class MainApplicationFrame extends JFrame
+public class MainApplicationFrame extends JFrame implements PreservingState
 {
     /**
      * Клиентская область фрейма, в которую вставляются дочерние компоненты.
@@ -33,7 +34,7 @@ public class MainApplicationFrame extends JFrame
         setContentPane(desktopPane);
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new Adapter(StateFilePath.MAIN_WINDOW){
+        addWindowListener(new Adapter(){
             @Override
             public void windowClosed(WindowEvent e)
             {
@@ -41,7 +42,14 @@ public class MainApplicationFrame extends JFrame
                 for(var internalFrame : desktopPane.getAllFrames()) {
                     internalFrame.dispose();
                 }
+                closed();
                 System.exit(0);
+            }
+
+            @Override
+            public void windowOpened(WindowEvent e) {
+                super.windowOpened(e);
+                opened();
             }
         });
 
@@ -88,5 +96,32 @@ public class MainApplicationFrame extends JFrame
     {
         desktopPane.add(frame);
         frame.setVisible(true);
+    }
+
+    @Override
+    public StateFilePath getPath() {
+        return StateFilePath.MAIN_WINDOW;
+    }
+
+    @Override
+    public State saveState() {
+        return new WindowState(this);
+    }
+
+    @Override
+    public void loadState(State state) {
+        if (state instanceof WindowState) {
+            WindowState windowState = (WindowState) state;
+            windowState.applyState(this);
+        }
+    }
+
+    private void closed() {
+        StatesLoader.getInstance().saveState(this);
+        StatesLoader.getInstance().saveState(LocaleApplication.getInstance());
+    }
+
+    private void opened() {
+        StatesLoader.getInstance().loadStateIfNecessary(this);
     }
 }

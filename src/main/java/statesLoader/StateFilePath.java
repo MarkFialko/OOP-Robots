@@ -1,4 +1,4 @@
-package common;
+package statesLoader;
 
 import java.nio.file.Path;
 

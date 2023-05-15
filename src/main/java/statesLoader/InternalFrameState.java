@@ -1,4 +1,4 @@
-package common;
+package statesLoader;
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,7 +6,7 @@ import java.beans.PropertyVetoException;
 import java.io.*;
 import java.util.Optional;
 
-public class InternalFrameState implements Serializable {
+public class InternalFrameState implements State {
     private Dimension m_dimension;
     private boolean m_isMaximum;
     private boolean m_isIcon;

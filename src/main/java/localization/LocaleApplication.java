@@ -1,12 +1,16 @@
 package localization;
 
 import common.ComparingHelpers;
+import statesLoader.LocalizationState;
+import statesLoader.PreservingState;
+import statesLoader.State;
+import statesLoader.StateFilePath;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ResourceBundle;
 
-public class LocaleApplication {
+public class LocaleApplication implements PreservingState {
     public static final String PROPERTY_LOCALE = "LocaleApplication.m_locale";
     static private final LocaleApplication st_localization = new LocaleApplication();
     static private volatile ResourceBundle m_rb;
@@ -51,5 +55,23 @@ public class LocaleApplication {
     public void addLocaleChangeListener(PropertyChangeListener listener)
     {
         m_propChangeDispatcher.addPropertyChangeListener(PROPERTY_LOCALE, listener);
+    }
+
+    @Override
+    public StateFilePath getPath() {
+        return StateFilePath.LOCALIZATION;
+    }
+
+    @Override
+    public State saveState() {
+        return new LocalizationState(st_localization);
+    }
+
+    @Override
+    public void loadState(State state) {
+        if (state instanceof LocalizationState) {
+            LocalizationState localizationState = (LocalizationState) state;
+            localizationState.applyState(st_localization);
+        }
     }
 }

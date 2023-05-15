@@ -1,6 +1,6 @@
 package gui;
 
-import common.StateFilePath;
+import statesLoader.StateFilePath;
 import localization.Names;
 
 import java.awt.BorderLayout;
@@ -17,11 +17,16 @@ public class GameWindow extends InternalFrame {
     private final GameVisualizer m_visualizer;
 
     public GameWindow() {
-        super(Names.GAME_FIELD, StateFilePath.GAME_FRAME,true, true, true, true);
+        super(Names.GAME_FIELD,true, true, true, true);
         m_visualizer = new GameVisualizer();
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_visualizer, BorderLayout.CENTER);
         getContentPane().add(panel);
         pack();
+    }
+
+    @Override
+    public StateFilePath getPath() {
+        return StateFilePath.GAME_FRAME;
     }
 }

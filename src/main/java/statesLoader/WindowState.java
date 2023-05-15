@@ -1,10 +1,10 @@
-package common;
+package statesLoader;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.Serializable;
 
-public class WindowState implements Serializable {
+public class WindowState implements State {
     private Dimension m_dimension;
     private Dimension m_maximumSize;
     private boolean m_isMaximumSizeSet;
