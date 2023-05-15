@@ -19,9 +19,6 @@ import java.io.Serializable;
 import java.util.Optional;
 
 public class Adapter implements WindowListener, InternalFrameListener {
-
-    private static volatile int st_loadState = JOptionPane.CANCEL_OPTION;
-    private static final Object st_loadStateLock = new Object();
     Adapter()
     {
 

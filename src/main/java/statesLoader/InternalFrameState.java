@@ -3,8 +3,6 @@ package statesLoader;
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyVetoException;
-import java.io.*;
-import java.util.Optional;
 
 public class InternalFrameState implements State {
     private Dimension m_dimension;
@@ -36,15 +34,4 @@ public class InternalFrameState implements State {
         }
 
     }
-
-//    public static Optional<InternalFrameState> readFromFile(String fileName) {
-//        try {
-//            InternalFrameState state = (InternalFrameState) FileManager.readFromFile(fileName);
-//            return Optional.of(state);
-//        } catch (IOException | ClassNotFoundException e) {
-//            System.err.printf("failReading %s%n", fileName);
-//        }
-//        return Optional.empty();
-//    }
-
 }
