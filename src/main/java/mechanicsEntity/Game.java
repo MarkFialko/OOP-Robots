@@ -172,8 +172,8 @@ public class Game {
             @Override
             public void onDied(GameEntity entity) {
 //                super.onDied(entity);
-                score += 1;
                 foods.remove((Food)entity);
+                score += 1;
                 userSnake.addEntity();
                 addFood();
                 System.out.println(score);

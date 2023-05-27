@@ -17,7 +17,7 @@ public class DrawHelper {
         SnakeEntity head = snake.getHead();
         drawRobot(g2d, head);
         for (SnakeEntity snakeEntity : snake.getTail()) {
-            drawAndFillCircle(g2d, snakeEntity, Color.MAGENTA, 6);
+            drawAndFillCircle(g2d, snakeEntity, Color.MAGENTA, 20);
         }
     }
 
@@ -58,7 +58,7 @@ public class DrawHelper {
         int y = gameEntity.getPosition().y;
         AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0);
         g.setTransform(t);
-        g.setColor(Color.GREEN);
+        g.setColor(color);
         fillOval(g, x, y, diam, diam);
         g.setColor(Color.BLACK);
         drawOval(g, x, y, diam, diam);

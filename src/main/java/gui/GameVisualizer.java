@@ -20,11 +20,6 @@ public class GameVisualizer extends JPanel
     private final Timer m_timer;
     private final Game m_game;
     private final DrawHelper drawHelper = new DrawHelper();
-
-    /**
-     * Позиция точки-цели.
-     */
-
     
     public GameVisualizer() 
     {
@@ -76,11 +71,6 @@ public class GameVisualizer extends JPanel
             m_timer.cancel();
         }
         updateStat();
-    }
-    
-    private static int round(double value)
-    {
-        return (int)(value + 0.5);
     }
     
     @Override
