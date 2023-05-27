@@ -41,20 +41,17 @@ public class SnakeEntity extends GameEntity {
         if (gameEntity instanceof SnakeEntity && property.equals(PropertyNames.POSITION)) {
             SnakeEntity snakeEntity = (SnakeEntity) gameEntity;
             Point p = snakeEntity.getPosition();
-            if (snakeEntity.isHead() && calculateDistance(p) < 3) {
+            if (snakeEntity.isHead() && calculateDistance(p) < 6) {
                 snakeEntity.m_callback.ifPresent(callback -> callback.onDied(this));
             } else {
                 m_callback.ifPresent(callback -> callback.onPositionChanging(this, gameEntity));
                 moveRobot(p);
-                if(calculateDistance(p) < 3) {
-
-                }
             }
         }
     }
 
     public void moveRobot(Point target) {
-        double distance = calculateDistance(target) - 6;
+        double distance = calculateDistance(target) - 2;
         if (distance < 0) {
             return;
         }

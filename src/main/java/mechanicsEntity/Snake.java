@@ -21,7 +21,7 @@ public class Snake {
                 new Point(x, y),
                 false,
                 getHead().getMaxPoint(),
-                0.2
+                0.1
         );
         getLast().addListener(snakeEntity, PropertyNames.POSITION);
         if (getLength() > 1) {

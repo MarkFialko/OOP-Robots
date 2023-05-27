@@ -24,26 +24,29 @@ public class Game {
                 new Point(m_width / 2, m_height / 2),
                 true,
                 new Point(m_width, m_height),
-                0.2);
+                0.1);
         headUser.setCallback(createCallbackForUserHead());
 
         SnakeEntity gameHead = new SnakeEntity(
                 new Point(20, 20),
                 true,
                 new Point(m_width, m_height),
-                0.1);
+                0.05);
         gameHead.setCallback(createCallbackForGameHead());
         headUser.addListener(gameHead, PropertyNames.POSITION);
 
-        foods = new HashSet<>();
-        addFood();
         userSnake = new Snake(headUser);
         gameSnake = new Snake(gameHead);
+
+        foods = new HashSet<>();
+        addFood();
+
     }
 
     private void addFood() {
         Food food = new Food(randomPoint());
         food.setCallback(createCallbackForFood());
+        userSnake.getHead().addListener(food, PropertyNames.POSITION);
         foods.add(food);
     }
 
