@@ -1,11 +1,12 @@
 package gui;
 
-import mechanicsEntity.RobotMovement;
+import mechanicsEntity.Food;
+import mechanicsEntity.Game;
+import mechanicsEntity.draw.DrawHelper;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.geom.AffineTransform;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -17,19 +18,19 @@ import javax.swing.JPanel;
 public class GameVisualizer extends JPanel
 {
     private final Timer m_timer;
-
-    private final RobotMovement m_robot;
+    private final Game m_game;
+    private final DrawHelper drawHelper = new DrawHelper();
 
     /**
      * Позиция точки-цели.
      */
-    private volatile Position<Double> m_targetPos;
 
     
     public GameVisualizer() 
     {
-        m_robot = new RobotMovement(new Position<>(0.5, 0.5));
-        m_targetPos = new Position<>(0.5, 0.5);
+        super(true);
+        setFocusable(true);
+        m_game = new Game();
 
         m_timer = new Timer("events generator", true);;
         m_timer.schedule(new TimerTask()
@@ -48,33 +49,33 @@ public class GameVisualizer extends JPanel
                 onModelUpdateEvent();
             }
         }, 0, 10);
-        addMouseListener(new MouseAdapter()
-        {
+        addKeyListener(new KeyAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e)
-            {
-                setTargetPosition(e.getPoint());
-                repaint();
+            public void keyPressed(KeyEvent e) {
+                m_game.setTarget(e);
             }
         });
         setDoubleBuffered(true);
-    }
-
-    protected void setTargetPosition(Point p)
-    {
-
-        m_targetPos = new Position<>(1.0 * p.x / getSize().width, 1.0 * p.y / getSize().height);
-        Dimension v = this.getSize();
     }
     
     protected void onRedrawEvent()
     {
         EventQueue.invokeLater(this::repaint);
     }
+
+    private void updateStat() {
+//        TODO statistic
+    }
     
     protected void onModelUpdateEvent()
     {
-        m_robot.moveRobot(m_targetPos, 1.0 / this.getSize().height, 1.0 / this.getSize().width);
+        if(!m_game.stopped()) {
+            m_game.move();
+
+        } else {
+            m_timer.cancel();
+        }
+        updateStat();
     }
     
     private static int round(double value)
@@ -87,42 +88,10 @@ public class GameVisualizer extends JPanel
     {
         super.paint(g);
         Graphics2D g2d = (Graphics2D)g;
-        Position<Double> currentRobotPos = m_robot.getPosition();
-        drawRobot(g2d, round(currentRobotPos.getX()* getSize().width), round(currentRobotPos.getY() * getSize().height), m_robot.getDirection());
-        drawTarget(g2d, round(m_targetPos.getX() * getSize().width), round(m_targetPos.getY() * getSize().height));
-    }
-    
-    private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
-    {
-        g.fillOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
-    }
-    
-    private static void drawOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
-    {
-        g.drawOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
-    }
-    
-    private void drawRobot(Graphics2D g, int robotCenterX, int robotCenterY, double direction)
-    {
-        AffineTransform t = AffineTransform.getRotateInstance(direction, robotCenterX, robotCenterY); 
-        g.setTransform(t);
-        g.setColor(Color.MAGENTA);
-        fillOval(g, robotCenterX, robotCenterY, 30, 10);
-        g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX, robotCenterY, 30, 10);
-        g.setColor(Color.WHITE);
-        fillOval(g, robotCenterX  + 10, robotCenterY, 5, 5);
-        g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX  + 10, robotCenterY, 5, 5);
-    }
-    
-    private void drawTarget(Graphics2D g, int x, int y)
-    {
-        AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0); 
-        g.setTransform(t);
-        g.setColor(Color.GREEN);
-        fillOval(g, x, y, 5, 5);
-        g.setColor(Color.BLACK);
-        drawOval(g, x, y, 5, 5);
+        drawHelper.draw(g2d, m_game.getUserSnake());
+        drawHelper.draw(g2d, m_game.getGameSnake());
+        for(Food food : m_game.getFoods()) {
+            drawHelper.draw(g2d, food);
+        }
     }
 }
