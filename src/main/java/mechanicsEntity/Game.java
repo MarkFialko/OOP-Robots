@@ -8,7 +8,7 @@ import java.util.Random;
 public class Game {
     private final Snake userSnake;
     private final Snake gameSnake;
-    private HashSet<Food> foods;
+    private final HashSet<Food> foods;
     private int score;
 
     private boolean m_stopped = false;
@@ -17,21 +17,26 @@ public class Game {
     private final int m_height = 400;
 
     private Point m_target;
-    private Random m_random = new Random();
+    private final Random m_random = new Random();
+    private boolean foodDied = false;
+    private int enemyDelay = 0;
 
     public Game() {
+        int radius = 10;
         SnakeEntity headUser = new SnakeEntity(
                 new Point(m_width / 2, m_height / 2),
+                radius,
                 true,
                 new Point(m_width, m_height),
-                0.1);
+                0.2);
         headUser.setCallback(createCallbackForUserHead());
 
         SnakeEntity gameHead = new SnakeEntity(
                 new Point(20, 20),
+                radius,
                 true,
                 new Point(m_width, m_height),
-                0.05);
+                0.1);
         gameHead.setCallback(createCallbackForGameHead());
         headUser.addListener(gameHead, PropertyNames.POSITION);
 
@@ -70,12 +75,44 @@ public class Game {
             case KeyEvent.VK_D -> new Point(m_width, userSnake.getHead().getPosition().y);
             default -> m_target;
         };
-        System.out.println();
     }
 
     public void move() {
-        if (m_target != null) {
+        if (m_target != null && !m_stopped) {
             userSnake.move(m_target);
+            if (userSnake.getHead().calculateDistance(gameSnake.getHead().getPosition()) < gameSnake.getHead().getRadius() * 2 && enemyDelay == 0) {
+                makeDamage();
+            }
+            checks();
+        }
+        if (foodDied) {
+            foodDied = false;
+            score++;
+            userSnake.addEntity();
+            enemyDelay += 10;
+            addFood();
+        }
+    }
+
+    private void makeDamage() {
+        try {
+            userSnake.deleteEntity();
+        } catch (GameStopException e) {
+            m_stopped = true;
+        }
+        enemyDelay += 30;
+    }
+
+    private void checks() {
+        boolean first = true;
+        for(SnakeEntity snakeEntity : userSnake.getTail()) {
+            if (first) {
+                first = false;
+                continue;
+            }
+            if (userSnake.getHead().calculateDistance(snakeEntity.getPosition()) < snakeEntity.getRadius() * 2) {
+                m_stopped = true;
+            }
         }
     }
 
@@ -94,23 +131,11 @@ public class Game {
     private Callback createCallbackForUserHead() {
         return new Callback() {
             @Override
-            public void onPositionChanging(GameEntity entity, GameEntity target) {
-                super.onPositionChanging(entity, target);
-            }
-
-            @Override
             public void onPositionChanged(GameEntity entity) {
-                super.onPositionChanged(entity);
-            }
-
-            @Override
-            public void onDying(GameEntity entity) {
-                try {
-                    userSnake.deleteEntity();
-                } catch (GameStopException e) {
+                SnakeEntity snakeEntity = (SnakeEntity) entity;
+                if (snakeEntity.calculateDistance(m_target) < snakeEntity.getRadius()) {
                     m_stopped = true;
                 }
-                super.onDying(entity);
             }
         };
     }
@@ -122,47 +147,14 @@ public class Game {
     private Callback createCallbackForGameHead() {
         return new Callback() {
             @Override
-            public void onPositionChanging(GameEntity entity, GameEntity target) {
-                super.onPositionChanging(entity, target);
-            }
+            public void onTargetWasMoved(GameEntity entity, GameEntity target, Point oldValue, Point newValue) {
+                if (enemyDelay == 0) {
+                    SnakeEntity snakeEntity = (SnakeEntity) entity;
+                    snakeEntity.moveRobot(newValue);
+                } else {
+                    enemyDelay--;
+                }
 
-            @Override
-            public void onPositionChanged(GameEntity entity) {
-                super.onPositionChanged(entity);
-            }
-
-            @Override
-            public void onDying(GameEntity entity) {
-                super.onDying(entity);
-            }
-
-            @Override
-            public void onDied(GameEntity entity) {
-                super.onDied(entity);
-            }
-        };
-    }
-
-    private Callback createCallbackForSnakeEntity() {
-        return new Callback() {
-            @Override
-            public void onPositionChanging(GameEntity entity, GameEntity target) {
-                super.onPositionChanging(entity, target);
-            }
-
-            @Override
-            public void onPositionChanged(GameEntity entity) {
-                super.onPositionChanged(entity);
-            }
-
-            @Override
-            public void onDying(GameEntity entity) {
-                super.onDying(entity);
-            }
-
-            @Override
-            public void onDied(GameEntity entity) {
-                super.onDied(entity);
             }
         };
     }
@@ -171,12 +163,10 @@ public class Game {
         return new Callback() {
             @Override
             public void onDied(GameEntity entity) {
-//                super.onDied(entity);
-                foods.remove((Food)entity);
-                score += 1;
-                userSnake.addEntity();
-                addFood();
-                System.out.println(score);
+                if (foods.contains((Food) entity)) {
+                    foodDied = true;
+                    foods.remove((Food) entity);
+                }
             }
         };
     }

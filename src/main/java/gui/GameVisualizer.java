@@ -35,7 +35,7 @@ public class GameVisualizer extends JPanel
             {
                 onRedrawEvent();
             }
-        }, 0, 50);
+        }, 0, 100);
         m_timer.schedule(new TimerTask()
         {
             @Override
@@ -43,7 +43,7 @@ public class GameVisualizer extends JPanel
             {
                 onModelUpdateEvent();
             }
-        }, 0, 10);
+        }, 0, 50);
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -66,11 +66,8 @@ public class GameVisualizer extends JPanel
     {
         if(!m_game.stopped()) {
             m_game.move();
-
-        } else {
-            m_timer.cancel();
+            updateStat();
         }
-        updateStat();
     }
     
     @Override
@@ -78,6 +75,7 @@ public class GameVisualizer extends JPanel
     {
         super.paint(g);
         Graphics2D g2d = (Graphics2D)g;
+        drawHelper.setRatio(1.0 * getSize().width / m_game.getWidth(), 1.0 * getSize().height / m_game.getHeight());
         drawHelper.draw(g2d, m_game.getUserSnake());
         drawHelper.draw(g2d, m_game.getGameSnake());
         for(Food food : m_game.getFoods()) {

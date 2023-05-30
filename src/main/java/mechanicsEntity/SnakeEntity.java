@@ -9,6 +9,8 @@ public class SnakeEntity extends GameEntity {
 
     private final Point m_maxPoint;
 
+    private final int m_radius;
+
     private final boolean m_isHead;
 
     private volatile double m_robotDirection = 0;
@@ -21,15 +23,39 @@ public class SnakeEntity extends GameEntity {
     /**
      * Максимальный угол изменения направления вектора движения.
      */
-    private static final double maxAngularVelocity = 0.005;
+    private double maxAngularVelocity;
 
     private static final double duration = 10;
 
-    SnakeEntity(Point point, boolean isHead, Point maxPoint, double maxVelocity) {
+    SnakeEntity(Point point, int radius, boolean isHead, Point maxPoint, double maxVelocity) {
         super(point);
         m_maxPoint = maxPoint;
+        m_radius = radius;
         m_isHead = isHead;
         this.maxVelocity = maxVelocity;
+        this.maxAngularVelocity = 0.005;
+    }
+
+    SnakeEntity(Point point, int radius, boolean isHead, Point maxPoint, double maxVelocity, double direction) {
+        this(point, radius, isHead, maxPoint, maxVelocity);
+        m_robotDirection = direction;
+    }
+
+    SnakeEntity(Point point, int radius, boolean isHead, Point maxPoint, double maxVelocity, double direction, double maxAngularVelocity) {
+        this(point, radius, isHead, maxPoint, maxVelocity, direction);
+        this.maxAngularVelocity = maxAngularVelocity;
+    }
+
+    public int getRadius() {
+        return m_radius;
+    }
+
+    public double getMaxVelocity() {
+        return maxVelocity;
+    }
+
+    public double getMaxAngularVelocity() {
+        return maxAngularVelocity;
     }
 
     public double getDirection() {
@@ -37,26 +63,24 @@ public class SnakeEntity extends GameEntity {
     }
 
     @Override
-    public void propertyChange(GameEntity gameEntity, PropertyNames property) {
+    public void propertyChange(GameEntity gameEntity, PropertyNames property, Object oldValue, Object newValue) {
         if (gameEntity instanceof SnakeEntity && property.equals(PropertyNames.POSITION)) {
-            SnakeEntity snakeEntity = (SnakeEntity) gameEntity;
-            Point p = snakeEntity.getPosition();
-            if (snakeEntity.isHead() && calculateDistance(p) < 15) {
-                snakeEntity.m_callback.ifPresent(callback -> callback.onDying(this));
-            } else {
-                m_callback.ifPresent(callback -> callback.onPositionChanging(this, gameEntity));
-                moveRobot(p);
-            }
+//            SnakeEntity snakeEntity = (SnakeEntity) gameEntity;
+//            Point p = snakeEntity.getPosition();
+            m_callback.ifPresent(callback -> callback.onTargetWasMoved(this, gameEntity, (Point)oldValue, (Point)newValue));
         }
     }
 
     public void moveRobot(Point target) {
-        double distance = calculateDistance(target);
-        if (distance < 0) {
-            return;
+        if (maxAngularVelocity == 0) {
+            changePosition(target);
         }
-        double angleToTarget = angleTo(m_position.x, m_position.y, target.x, target.y);
-        double angularVelocity = 0;
+        double distance = calculateDistance(target);
+//        if (distance < 5) {
+//            return;
+//        }
+        double angleToTarget = angleTo(target);
+        double angularVelocity;
 
         if (Math.abs(m_robotDirection - angleToTarget) < 10e-7) {
             angularVelocity = 0;
@@ -71,39 +95,24 @@ public class SnakeEntity extends GameEntity {
             else
                 angularVelocity = -maxAngularVelocity;
         }
-        changePosition(angularVelocity);
+        changePosition(angularVelocity, distance);
     }
 
     /**
      * @param angularVelocity угол изменения направления вектора движения.
      */
-    private void changePosition(double angularVelocity) {
+    private void changePosition(double angularVelocity, double distance) {
         Point newPosition = new Point();
         double newDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
-        int newX = Math.round((float)(m_position.x + maxVelocity * duration * Math.cos(newDirection)));
+        int newX = Math.round((float)(m_position.x + Math.min(maxVelocity * duration, distance) * Math.cos(newDirection)));
         newPosition.x = applyLimits(newX, 0, m_maxPoint.x);
-        int newY = Math.round((float)(m_position.y + maxVelocity * duration * Math.sin(newDirection)));
+        int newY = Math.round((float)(m_position.y + Math.min(maxVelocity * duration, distance) * Math.sin(newDirection)));
         newPosition.y = applyLimits(newY, 0, m_maxPoint.y);
 
         m_robotDirection = newDirection;
         setPosition(newPosition);
     }
 
-
-    /**
-     * Возвращает угол из отрезка [0, 2 * pi] - напраление на точку с координатами ({@code toX}, {@code toY})
-     *
-     * @param fromX координата X исходной точки.
-     * @param fromY координата Y исходной точки.
-     * @param toX   координата X точки-цели.
-     * @param toY   координата Y точки-цели.
-     * @return напраление
-     */
-    private static double angleTo(double fromX, double fromY, double toX, double toY) {
-        double diffX = toX - fromX;
-        double diffY = toY - fromY;
-        return asNormalizedRadians(Math.atan2(diffY, diffX));
-    }
 
     /**
      * @param value значение
@@ -118,21 +127,13 @@ public class SnakeEntity extends GameEntity {
         return Math.min(value, max);
     }
 
-    /**
-     * Возвращает угол из отрезка [0, 2 * pi]
-     *
-     * @param angle
-     * @return
-     */
-    private static double asNormalizedRadians(double angle) {
-        while (angle < 0) {
-            angle += 2 * Math.PI;
-        }
-        while (angle >= 2 * Math.PI) {
-            angle -= 2 * Math.PI;
-        }
-        return angle;
+    private static double applyLimits(double value, double min, double max) {
+        if (value < min)
+            return min;
+        return Math.min(value, max);
     }
+
+
 
     boolean isHead() {
         return m_isHead;

@@ -15,19 +15,34 @@ public class Snake {
 
 
     public void addEntity() {
-        int x = Math.round((float)(getLast().getPosition().x + Math.cos(getLast().getDirection() + Math.PI) * 6));
-        int y = Math.round((float)(getLast().getPosition().y + Math.sin(getLast().getDirection() + Math.PI) * 6));
+        int x = Math.round((float)(getLast().getPosition().x + Math.cos(getLast().getDirection() + Math.PI) * 20));
+        int y = Math.round((float)(getLast().getPosition().y + Math.sin(getLast().getDirection() + Math.PI) * 20));
+        SnakeEntity last = getLast();
         SnakeEntity snakeEntity = new SnakeEntity(
                 new Point(x, y),
+                last.getRadius(),
                 false,
-                getHead().getMaxPoint(),
-                0.1
+                last.getMaxPoint(),
+                last.getMaxVelocity(),
+                last.getDirection(),
+                last.getMaxAngularVelocity()
         );
+        snakeEntity.setCallback(createCallbackForSnakeEntity());
         getLast().addListener(snakeEntity, PropertyNames.POSITION);
-        if (getLength() > 1) {
-            getHead().addListener(snakeEntity, PropertyNames.POSITION);
-        }
+//        if (getLength() > 1) {
+//            getHead().addListener(snakeEntity, PropertyNames.POSITION);
+//        }
         m_snake.add(snakeEntity);
+    }
+
+    private Callback createCallbackForSnakeEntity() {
+        return new Callback() {
+            @Override
+            public void onTargetWasMoved(GameEntity entity, GameEntity target, Point oldValue, Point newValue) {
+                SnakeEntity snakeEntity = (SnakeEntity) entity;
+                snakeEntity.moveRobot(oldValue);
+            }
+        };
     }
 
     public void deleteEntity() throws GameStopException {
